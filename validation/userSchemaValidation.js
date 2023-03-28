@@ -26,7 +26,7 @@ const validateLogin = (loginDetails) => {
         password: Joi.string().min(8).required()
     })
 
-    const { error } = loginSchemaValidation.validate();
+    const { error } = loginSchemaValidation.validate(loginDetails);
 
     return { error }
 }
