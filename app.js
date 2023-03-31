@@ -105,7 +105,10 @@ app.post('/users/login', async (req, res) => {
     if (!passwordMatch) return res.status(400).send({ message: "Username or password doesn't match." });
 
     const token = jwt.sign({ _id: user._id }, process.env.SECRET_TOKEN);
+    const storeOwnerToken = jwt.sign({ _id: user._id }, process.env.STORE_OWNER_TOKEN);
+
     res.header('auth-token', token);
+    res.header('store-owner-token', storeOwnerToken);
 
     const decoded = jwt.decode(token);
 
@@ -130,4 +133,9 @@ app.get('/sales', (req, res, next) => {
 }, (req, res) => {
 
     res.send(req.user)
+})
+
+
+app.post('/category/add', (req, res) => {
+
 })
