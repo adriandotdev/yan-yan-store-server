@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken');
 // Models
 const User = require('./models/Users');
 const Product = require('./models/Products');
+const Category = require('./models/Category');
 
 // Validations
 const { validateUser, validateLogin } = require('./validation/userSchemaValidation');
@@ -90,7 +91,38 @@ app.post('/users/add', async (req, res) => {
     }
 })
 
-app.post('/users/login', async (req, res) => {
+app.post('/category/add', async (req, res) => {
+
+    const newCategory = new Category({
+        category: req.body['category']
+    });
+
+    try {
+        const response = await newCategory.save();
+
+        res.send({ response, message: 'Category successfully saved' });
+    }
+    catch (err) {
+        res.send({ err })
+    }
+});
+
+app.get('/category', async (req, res) => {
+
+    try {
+
+        const categories = await Category.find();
+
+        res.status(200).send({ message: 'Successfully retrieved data', categories });
+    }
+    catch (err) {
+        res.status(500).send({ message: 'Server Error' });
+    }
+})
+
+app.post('/users/login', authenticate, async (req, res) => {
+
+    if (req.verified) return res.status(200).send({ message: 'Your account has been verified' });
 
     const { error } = validateLogin(req.body);
 
@@ -107,35 +139,40 @@ app.post('/users/login', async (req, res) => {
     const token = jwt.sign({ _id: user._id }, process.env.SECRET_TOKEN);
     const storeOwnerToken = jwt.sign({ _id: user._id }, process.env.STORE_OWNER_TOKEN);
 
+    req.session.isAuth = token;
+    console.log("SESSION: " + req.session.isAuth);
+
     res.header('auth-token', token);
     res.header('store-owner-token', storeOwnerToken);
 
-    const decoded = jwt.decode(token);
-
-    res.status(200).send({ message: 'Successfully Logged In', token, decoded });
+    res.status(200).send({ message: 'Successfully Logged In', token });
 });
 
-app.get('/sales', (req, res, next) => {
+app.post('/logout', (req, res) => {
 
-    const token = req.header('auth-token');
-    if (!token) res.status(401).send({ message: 'ACCESS DENIED' });
+    res.status(200).send({ message: "Logged out successfully" });
+});
+
+function authenticate(req, res, next) {
+
+    // Check for authorization header.
+    const authHeader = req.headers['authorization'];
+
+    // If empty, return false
+    if (!authHeader) req.verified = false;
+
+    // Split the Bearer and the token.
+    const userToken = authHeader?.split(' ')[1];
 
     try {
+        jwt.verify(userToken, process.env.SECRET_TOKEN);
 
-        const verified = jwt.verify(token, process.env.SECRET_TOKEN);
-
-        req.user = verified;
+        console.log("VERIFIED: " + true);
+        req.verified = true;
     }
     catch (err) {
-        res.status(400).send("INVALID TOKEN");
+        req.verified = false;
     }
+
     next();
-}, (req, res) => {
-
-    res.send(req.user)
-})
-
-
-app.post('/category/add', (req, res) => {
-
-})
+}
