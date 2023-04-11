@@ -3,9 +3,6 @@ const cors = require('cors');
 const app = express();
 const dotenv = require('dotenv');
 
-// Models
-const Category = require('./models/Category');
-
 // Routes
 const UserRoute = require('./routes/UserRoute');
 const ProductsRoute = require('./routes/ProductsRoute');
@@ -30,8 +27,6 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-
 
 app.use(CategoryRoute);
 app.use(ProductsRoute);
