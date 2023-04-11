@@ -4,11 +4,12 @@ const app = express();
 const dotenv = require('dotenv');
 
 // Models
-const Product = require('./models/Products');
 const Category = require('./models/Category');
 
 // Routes
 const UserRoute = require('./routes/UserRoute');
+const ProductsRoute = require('./routes/ProductsRoute');
+const CategoryRoute = require('./routes/CategoryRoute');
 
 const mongoose = require('mongoose');
 const PORT = process.env.PORT || 3001;
@@ -30,61 +31,8 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/products', (req, res) => {
-
-    Product.find().then(products => console.log(products))
-        .catch(err => console.error(err))
-})
-
-app.post('/products/add', (req, res) => {
-
-    const newProduct = new Product(req.body);
-
-    newProduct.save().then((result) => {
-
-        console.log("SAVED!");
-        res.json({ status: 'OK' })
-    }).catch(_err => res.json({ status: 404 }))
-});
-
-app.delete('/products/:id', (req, res) => {
-
-    Product.deleteOne({ _id: req.params.id })
-        .then(result => res.json({ status: 'OK ' }))
-        .catch(err => res.json({ status: 'ERROR' }))
-});
 
 
-
-app.post('/category/add', async (req, res) => {
-
-    const newCategory = new Category({
-        category: req.body['category']
-    });
-
-    try {
-        const response = await newCategory.save();
-
-        res.send({ response, message: 'Category successfully saved' });
-    }
-    catch (err) {
-        res.send({ err })
-    }
-});
-
-app.get('/category', async (req, res) => {
-
-    try {
-
-        const categories = await Category.find();
-
-        res.status(200).send({ message: 'Successfully retrieved data', categories });
-    }
-    catch (err) {
-        res.status(500).send({ message: 'Server Error' });
-    }
-})
-
-
-
+app.use(CategoryRoute);
+app.use(ProductsRoute);
 app.use(UserRoute);
