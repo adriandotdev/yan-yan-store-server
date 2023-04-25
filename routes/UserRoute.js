@@ -47,19 +47,25 @@ router.post('/users/add', async (req, res) => {
 
 router.post('/users/login', authenticate, async (req, res) => {
 
+    /**
+     * req.verified will be set by the 'authenticate' middleware.
+     */
     if (req.verified) return res.status(200).send({ message: 'Your account has been verified' });
 
     const { error } = validateLogin(req.body);
 
+    /** Check if the data is followed the restrictions of the schema. */
     if (error) return res.status(400).send({ message: 'Username and password must be 8 characters long.' });
 
     const user = await User.findOne({ username: req.body.username });
 
-    if (!user) return res.status(400).send({ message: "Username or password doesn't match." });
+    // If user doesn't exist
+    if (!user) return res.status(400).send({ message: "Username does not exist." });
 
     const passwordMatch = await bcrypt.compare(req.body.password, user.password);
 
-    if (!passwordMatch) return res.status(400).send({ message: "Username or password doesn't match." });
+    // If password is incorrect
+    if (!passwordMatch) return res.status(400).send({ message: "Password is incorrect." });
 
     const token = jwt.sign({ _id: user._id }, process.env.SECRET_TOKEN);
     const storeOwnerToken = jwt.sign({ _id: user._id }, process.env.STORE_OWNER_TOKEN);
