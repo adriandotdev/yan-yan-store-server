@@ -42,6 +42,30 @@ router.post('/products/add', async (req, res) => {
     }
 });
 
+router.put('/products/:id', async (req, res) => {
+
+    if (!req.params.id) return res.status(404).json({ status: 'FAILED', message: 'Product ID is required' });
+
+    const response = await Product.updateOne({ _id: req.params.id }, {
+        $set: {
+            category: req.body.category,
+            product: req.body.product,
+            price: req.body.price,
+            quantity: req.body.quantity
+        }
+    })
+
+    if (response.acknowledged) {
+
+        const data = await Product.find();
+
+        if (data)
+            return res.status(200).json({ status: 'OK', products: data, message: 'Product deleted successfully' });
+    }
+
+    return res.status(500).json({ status: 'FAILED', message: 'Server error' });
+})
+
 router.delete('/products/:id', async (req, res) => {
 
     if (!req.params.id) return res.status(404).json({ status: 'FAILED', message: 'Product ID is required' });
