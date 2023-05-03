@@ -51,7 +51,8 @@ router.put('/products/:id', async (req, res) => {
             category: req.body.category,
             product: req.body.product,
             price: req.body.price,
-            quantity: req.body.quantity
+            quantity: req.body.quantity,
+            description: req.body.description
         }
     })
 

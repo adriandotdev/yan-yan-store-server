@@ -7,6 +7,7 @@ const validateProduct = (product) => {
         product: Joi.string().required(),
         price: Joi.number().required(),
         quantity: Joi.number().integer().required(),
+        description: Joi.string().allow('')
     });
 
     const { error } = productSchema.validate(product);
