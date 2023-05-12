@@ -72,6 +72,7 @@ router.post('/users/login', authenticate, async (req, res) => {
 
     res.header('auth-token', token);
     res.header('store-owner-token', storeOwnerToken);
+    res.header('Access-Control-Allow-Origin', '*');
 
     res.status(200).send({ message: 'Successfully Logged In', token });
 });
