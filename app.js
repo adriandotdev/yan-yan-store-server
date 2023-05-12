@@ -24,7 +24,7 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 });
 
 // Middlewares
-app.use(cors());
+app.use(cors({ origin: 'https://yanyan-store.netlify.app' }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
