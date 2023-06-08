@@ -1,8 +1,11 @@
 const Product = require('../models/Products');
 const router = require('express').Router();
+const { authenticate } = require('../middlewares/AuthenticateMiddleware');
 const { validateProduct } = require('../validation/productSchemaValidation');
 
-router.get('/products', async (req, res) => {
+router.get('/products', authenticate, async (req, res) => {
+
+    if (!req.verified) return res.status(403).json({ status: 'Access denied!' });
 
     try {
         const products = await Product.find();

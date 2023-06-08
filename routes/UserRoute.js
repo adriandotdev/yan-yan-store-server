@@ -9,7 +9,7 @@ const { validateUser, validateLogin } = require('../validation/userSchemaValidat
 const User = require('../models/Users');
 
 // Middlewares
-const { authenticate } = require('../middlewares/AuthenticateMiddleware');
+const { authenticate, authenticateRole } = require('../middlewares/AuthenticateMiddleware');
 
 router.post('/users/add', async (req, res) => {
 
@@ -23,8 +23,8 @@ router.post('/users/add', async (req, res) => {
 
     if (username) return res.status(404).json({ message: 'Username already exists.' });
 
-    // Hashed the Password
-    const salt = await bcrypt.genSalt(10);
+    // Hash the Password
+    const salt = await bcrypt.genSalt(10); // Generate the salt.
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
     // New User
@@ -45,12 +45,14 @@ router.post('/users/add', async (req, res) => {
     }
 })
 
-router.post('/users/login', authenticate, async (req, res) => {
+router.post('/api/user/verify-login', [authenticate], async (req, res) => {
 
-    /**
-     * req.verified will be set by the 'authenticate' middleware.
-     */
-    if (req.verified) return res.status(200).send({ message: 'Your account has been verified' });
+    if (req.verified) return res.status(200).send({ message: 'Your account has been verified', decodedToken: req.decodedToken });
+
+    return res.status(401).json({ message: 'You are required to login' });
+});
+
+router.post('/users/login', async (req, res) => {
 
     const { error } = validateLogin(req.body);
 
@@ -67,18 +69,24 @@ router.post('/users/login', authenticate, async (req, res) => {
     // If password is incorrect
     if (!passwordMatch) return res.status(400).send({ message: "Password is incorrect." });
 
-    const token = jwt.sign({ _id: user._id }, process.env.SECRET_TOKEN);
-    const storeOwnerToken = jwt.sign({ _id: user._id }, process.env.STORE_OWNER_TOKEN);
+    const authToken = jwt.sign({ _id: user._id, role: user.role }, process.env.SECRET_TOKEN);
 
-    res.header('auth-token', token);
-    res.header('store-owner-token', storeOwnerToken);
-    res.header('Access-Control-Allow-Origin', '*');
+    const decodedToken = jwt.decode(authToken);
 
-    res.status(200).send({ message: 'Successfully Logged In', token });
+    res.cookie('auth-token', authToken, {
+        sameSite: 'strict',
+        maxAge: 7 * 24 * 60 * 60 * 1000, // Expires in 7 days
+        httpOnly: true, // Cookie accessible only via HTTP, not JavaScript
+        secure: true, // Cookie sent over HTTPS only
+    });
+
+    res.status(200).send({ message: 'Successfully Logged In', decodedToken });
 });
 
 router.post('/users/logout', (req, res) => {
 
+    res.clearCookie('auth-token');
+    res.clearCookie('role-token');
     res.status(200).send({ message: "Logged out successfully" });
 });
 

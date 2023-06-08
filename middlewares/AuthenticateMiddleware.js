@@ -2,17 +2,14 @@ const jwt = require('jsonwebtoken');
 
 function authenticate(req, res, next) {
 
-    // Check for authorization header.
-    const authHeader = req.headers['authorization'];
-
-    // If empty, return false
-    if (!authHeader) req.verified = false;
-
-    // Split the Bearer and the token.
-    const userToken = authHeader?.split(' ')[1];
+    const userToken = req.cookies['auth-token'];
 
     try {
         jwt.verify(userToken, process.env.SECRET_TOKEN);
+
+        const decodedToken = jwt.decode(userToken);
+
+        req.decodedToken = decodedToken;
         req.verified = true;
     }
     catch (err) {

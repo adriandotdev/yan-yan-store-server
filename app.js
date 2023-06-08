@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const app = express();
 const dotenv = require('dotenv');
+const cookieParser = require('cookie-parser');
 
 // Routes
 const UserRoute = require('./routes/UserRoute');
@@ -24,10 +25,10 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 });
 
 // Middlewares
-app.use(cors());
+app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
+app.use(cookieParser())
 app.use(CategoryRoute);
 app.use(ProductsRoute);
 app.use(UserRoute);

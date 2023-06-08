@@ -1,5 +1,6 @@
 const Category = require('../models/Category');
 const router = require('express').Router();
+const { authenticate } = require('../middlewares/AuthenticateMiddleware');
 
 router.post('/category/add', async (req, res) => {
 
@@ -17,7 +18,9 @@ router.post('/category/add', async (req, res) => {
     }
 });
 
-router.get('/category', async (req, res) => {
+router.get('/category', authenticate, async (req, res) => {
+
+    if (!req.verified) return res.status(403).json({ status: 'Token is not valid' });
 
     try {
 
