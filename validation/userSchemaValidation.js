@@ -22,8 +22,8 @@ const validateLogin = (loginDetails) => {
 
     const loginSchemaValidation = Joi.object({
 
-        username: Joi.string().min(8).required(),
-        password: Joi.string().min(8).required()
+        username: Joi.string().required(),
+        password: Joi.string().required()
     })
 
     const { error } = loginSchemaValidation.validate(loginDetails);

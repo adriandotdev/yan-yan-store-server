@@ -57,17 +57,17 @@ router.post('/users/login', async (req, res) => {
     const { error } = validateLogin(req.body);
 
     /** Check if the data is followed the restrictions of the schema. */
-    if (error) return res.status(400).send({ message: 'Username and password must be 8 characters long.' });
+    if (error) return res.status(400).send({ header: 'Invalid login credentials', message: 'Username and password are required.' });
 
     const user = await User.findOne({ username: req.body.username });
 
     // If user doesn't exist
-    if (!user) return res.status(400).send({ message: "Username does not exist." });
+    if (!user) return res.status(400).send({ header: "Invalid login credentials", body: "Please double-check your username and pasword, and try again." });
 
     const passwordMatch = await bcrypt.compare(req.body.password, user.password);
 
     // If password is incorrect
-    if (!passwordMatch) return res.status(400).send({ message: "Password is incorrect." });
+    if (!passwordMatch) return res.status(400).send({ header: "Invalid login credentials", body: "Please double-check your username and pasword, and try again." });
 
     const authToken = jwt.sign({ _id: user._id, role: user.role }, process.env.SECRET_TOKEN);
 
