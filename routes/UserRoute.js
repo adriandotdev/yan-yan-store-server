@@ -11,6 +11,11 @@ const User = require('../models/Users');
 // Middlewares
 const { authenticate, authenticateRole } = require('../middlewares/AuthenticateMiddleware');
 
+const ACCOUNT_STATUS = {
+    ACTIVE: 'ACTIVE',
+    DEACTIVATED: 'DEACTIVATED'
+}
+
 router.post('/users/add', async (req, res) => {
 
     const { error } = validateUser(req.body);
@@ -32,6 +37,7 @@ router.post('/users/add', async (req, res) => {
         role: req.body.role,
         name: req.body.name,
         username: req.body.username,
+        accountStatus: ACCOUNT_STATUS.ACTIVE,
         password: hashedPassword
     });
 
@@ -43,13 +49,37 @@ router.post('/users/add', async (req, res) => {
     catch (err) {
         res.status(500).json({ message: "Server Error. We cannot process your request." })
     }
-})
+});
 
 router.post('/api/user/verify-login', [authenticate], async (req, res) => {
 
     if (req.verified) return res.status(200).send({ message: 'Your account has been verified', decodedToken: req.decodedToken });
 
     return res.status(401).json({ message: 'You are required to login' });
+});
+
+router.get('/api/store/users', authenticate, async (req, res) => {
+
+    const users = await User.find({ _id: { $ne: req.decodedToken._id } });
+
+    return res.status(200).json({ users });
+});
+
+router.delete('/api/store/users/:id', authenticate, async (req, res) => {
+
+    if (!req.params.id) return res.status(404).json({ status: 'FAILED', message: 'User ID is required.' });
+
+    const response = await User.deleteOne({ _id: req.params.id });
+
+    if (response.acknowledged) {
+
+        const data = await User.find({ _id: { $ne: req.decodedToken._id } });
+
+        if (data)
+            return res.status(200).json({ status: 'OK', data, message: 'User deleted successfully.' });
+    }
+
+    return res.status(500).json({ message: 'Server Error' });
 });
 
 router.post('/users/login', async (req, res) => {

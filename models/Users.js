@@ -20,6 +20,10 @@ const userSchema = new mongoose.Schema({
         minLength: 8,
         required: true
     },
+    accountStatus: {
+        type: String,
+        required: true
+    },
     dateAdded: {
         type: Date,
         default: Date.now
