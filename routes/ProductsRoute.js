@@ -8,7 +8,7 @@ router.get('/products', authenticate, async (req, res) => {
     if (!req.verified) return res.status(403).json({ status: 'Access denied!' });
 
     try {
-        const products = await Product.find();
+        const products = await Product.find().sort({ product: 1, _id: 1 });
 
         return res.status(200).json({ products, status: 'OK' });
     }
@@ -21,7 +21,7 @@ router.post('/products/filter', async (req, res) => {
 
     if (req.body.categories.length < 1) return res.sendStatus(200);
 
-    const response = await Product.find({ "category": { $in: req.body.categories } })
+    const response = await Product.find({ "category": { $in: req.body.categories } }).sort({ product: 1, _id: 1 });
 
     res.status(200).json({ products: response })
 })
@@ -61,7 +61,7 @@ router.put('/products/:id', async (req, res) => {
 
     if (response.acknowledged) {
 
-        const data = await Product.find();
+        const data = await Product.find().sort({ product: 1, _id: 1 });
 
         if (data)
             return res.status(200).json({ status: 'OK', products: data, message: 'Product deleted successfully' });
@@ -78,7 +78,7 @@ router.delete('/products/:id', async (req, res) => {
 
     if (response.acknowledged) {
 
-        const data = await Product.find();
+        const data = await Product.find().sort({ product: 1, _id: 1 });
 
         if (data)
             return res.status(200).json({ status: 'OK', products: data, message: 'Product deleted successfully' });
