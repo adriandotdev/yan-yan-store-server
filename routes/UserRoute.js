@@ -65,6 +65,27 @@ router.get('/api/store/users', authenticate, async (req, res) => {
     return res.status(200).json({ users });
 });
 
+router.put('/api/store/users/status/:id', authenticate, async (req, res) => {
+
+    if (!req.params.id) return res.status(404).json({ status: 'FAILED', message: 'User ID is required' });
+
+    const response = await User.updateOne({ _id: req.params.id }, {
+        $set: {
+            accountStatus: req.body.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE'
+        }
+    });
+
+    if (response.acknowledged) {
+
+        const data = await User.find({ _id: { $ne: req.decodedToken._id } });
+
+        if (data)
+            return res.status(200).json({ status: 'OK', data, message: 'User account successfully updated.' });
+    }
+
+    return res.status(500).json({ message: 'Server Error' });
+});
+
 router.delete('/api/store/users/:id', authenticate, async (req, res) => {
 
     if (!req.params.id) return res.status(404).json({ status: 'FAILED', message: 'User ID is required.' });
@@ -93,6 +114,8 @@ router.post('/users/login', async (req, res) => {
 
     // If user doesn't exist
     if (!user) return res.status(400).send({ header: "Invalid login credentials", body: "Please double-check your username and pasword, and try again." });
+
+    if (user.accountStatus === 'INACTIVE') return res.status(400).json({ header: 'Unauthorized', body: 'Account is inactive. Please try to login later.' });
 
     const passwordMatch = await bcrypt.compare(req.body.password, user.password);
 
