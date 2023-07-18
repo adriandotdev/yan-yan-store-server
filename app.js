@@ -25,7 +25,7 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
 });
 
 // Middlewares
-app.use(cors({ origin: ['https://yanyan-store.vercel.app', 'http://localhost:5173', 'https://yanyan-store-adriandotdev.vercel.app'], credentials: true }));
+app.use(cors({ origin: ['https://yanyan-store.vercel.app', 'http://localhost:5173', 'https://yanyan-store-adriandotdev.vercel.app'], methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'], credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser())
