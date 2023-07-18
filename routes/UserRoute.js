@@ -127,14 +127,14 @@ router.post('/users/login', async (req, res) => {
     const decodedToken = jwt.decode(authToken);
 
     res.cookie('auth-token', authToken, {
-        sameSite: 'strict',
+        sameSite: false,
         maxAge: 7 * 24 * 60 * 60 * 1000, // Expires in 7 days
         httpOnly: true, // Cookie accessible only via HTTP, not JavaScript
         secure: true, // Cookie sent over HTTPS only
     });
 
-    // res.setHeader('Access-Control-Allow-Origin', 'https://yanyan-store.vercel.app');
-    // res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', 'https://yanyan-store.vercel.app');
+    res.setHeader('Access-Control-Allow-Credentials', true);
     res.status(200).send({ message: 'Successfully Logged In', decodedToken });
 });
 
