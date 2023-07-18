@@ -133,8 +133,8 @@ router.post('/users/login', async (req, res) => {
         secure: true, // Cookie sent over HTTPS only
     });
 
-    res.setHeader('Access-Control-Allow-Origin', 'https://yanyan-store.vercel.app');
-    res.setHeader('Access-Control-Allow-Credentials', true);
+    // res.setHeader('Access-Control-Allow-Origin', 'https://yanyan-store.vercel.app');
+    // res.setHeader('Access-Control-Allow-Credentials', true);
     res.status(200).send({ message: 'Successfully Logged In', decodedToken });
 });
 
