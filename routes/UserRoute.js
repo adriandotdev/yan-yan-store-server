@@ -127,7 +127,7 @@ router.post('/users/login', async (req, res) => {
     const decodedToken = jwt.decode(authToken);
 
     res.cookie('auth-token', authToken, {
-        sameSite: false,
+        sameSite: 'strict',
         maxAge: 7 * 24 * 60 * 60 * 1000, // Expires in 7 days
         httpOnly: true, // Cookie accessible only via HTTP, not JavaScript
         secure: true, // Cookie sent over HTTPS only
