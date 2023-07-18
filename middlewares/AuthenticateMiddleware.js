@@ -16,6 +16,8 @@ function authenticate(req, res, next) {
         req.verified = false;
     }
 
+    res.setHeader('Access-Control-Allow-Origin', 'https://yanyan-store.vercel.app');
+    res.setHeader('Access-Control-Allow-Credentials', true);
     next();
 }
 
