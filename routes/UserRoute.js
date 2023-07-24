@@ -9,13 +9,18 @@ const { validateUser, validateLogin } = require('../validation/userSchemaValidat
 const User = require('../models/Users');
 
 // Middlewares
-const { authenticate, authenticateRole } = require('../middlewares/AuthenticateMiddleware');
+const { authenticate } = require('../middlewares/AuthenticateMiddleware');
 
 const ACCOUNT_STATUS = {
     ACTIVE: 'ACTIVE',
     DEACTIVATED: 'DEACTIVATED'
 }
 
+/**
+ * @route /users/add 
+ * 
+ * This route is for adding new user in the system.
+ */
 router.post('/users/add', async (req, res) => {
 
     const { error } = validateUser(req.body);
@@ -23,16 +28,15 @@ router.post('/users/add', async (req, res) => {
     if (error)
         return res.status(404).json({ message: error });
 
-    // Find the username if already exist
+    // Query the username to the database to check if it does exist.
     const username = await User.findOne({ username: req.body.username });
-
     if (username) return res.status(404).json({ message: 'Username already exists.' });
 
-    // Hash the Password
+    // Encrypt the passsword.
     const salt = await bcrypt.genSalt(10); // Generate the salt.
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-    // New User
+    // Instantiate/Create a new user.
     const user = new User({
         role: req.body.role,
         name: req.body.name,
@@ -42,22 +46,33 @@ router.post('/users/add', async (req, res) => {
     });
 
     try {
-        await user.save();
+        await user.save(); // Save the new user.
 
-        res.status(200).json({ message: "User successfully added!" })
+        res.status(200).json({ message: "User successfully added!" });
     }
     catch (err) {
-        res.status(500).json({ message: "Server Error. We cannot process your request." })
+        res.status(500).json({ message: "Server Error. We cannot process your request." });
     }
 });
 
-router.post('/api/user/verify-login', [authenticate], async (req, res) => {
+/**
+ * @route /api/user/verify-login
+ * 
+ * This route will be called whenever the login page or dashboard is loaded.
+ * The purpose of this is to prevent the client to go to the route when it is not authenticated.
+ */
+router.post('/api/user/verify-login', authenticate, async (req, res) => {
 
     if (req.verified) return res.status(200).send({ message: 'Your account has been verified', decodedToken: req.decodedToken });
 
     return res.status(401).json({ message: 'You are required to login' });
 });
 
+/**
+ * @route /api/store/users
+ * 
+ * This route will get all of the users from the database.
+ */
 router.get('/api/store/users', authenticate, async (req, res) => {
 
     const users = await User.find({ _id: { $ne: req.decodedToken._id } });
@@ -65,6 +80,11 @@ router.get('/api/store/users', authenticate, async (req, res) => {
     return res.status(200).json({ users });
 });
 
+/**
+ * @route /api/store/users/status/:id
+ * 
+ * This route will update the account status of the user.
+ */
 router.put('/api/store/users/status/:id', authenticate, async (req, res) => {
 
     if (!req.params.id) return res.status(404).json({ status: 'FAILED', message: 'User ID is required' });
@@ -86,11 +106,17 @@ router.put('/api/store/users/status/:id', authenticate, async (req, res) => {
     return res.status(500).json({ message: 'Server Error' });
 });
 
+/**
+ * @route /api/store/users/:id
+ * 
+ * This api is for deleting user's account.
+ */
 router.delete('/api/store/users/:id', authenticate, async (req, res) => {
 
     if (!req.params.id) return res.status(404).json({ status: 'FAILED', message: 'User ID is required.' });
 
     const response = await User.deleteOne({ _id: req.params.id });
+
 
     if (response.acknowledged) {
 
@@ -103,6 +129,11 @@ router.delete('/api/store/users/:id', authenticate, async (req, res) => {
     return res.status(500).json({ message: 'Server Error' });
 });
 
+/**
+ * @route /users/login
+ * 
+ * This route is for login
+ */
 router.post('/users/login', async (req, res) => {
 
     const { error } = validateLogin(req.body);
@@ -136,6 +167,11 @@ router.post('/users/login', async (req, res) => {
     res.status(200).send({ message: 'Successfully Logged In', decodedToken });
 });
 
+/**
+ * @route /users/logout
+ * 
+ * This route is to logout the account.
+ */
 router.post('/users/logout', (req, res) => {
 
     res.clearCookie('auth-token');
